@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ARGOS_URL="${ARGOS_URL:-http://127.0.0.1:4020}"
+ARGOS_TOKEN="${ARGOS_TOKEN:-}"
+
+auth_header=()
+if [ -n "$ARGOS_TOKEN" ]; then
+  auth_header=(-H "Authorization: Bearer $ARGOS_TOKEN")
+fi
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  health)
+    curl -sS "${auth_header[@]}" "$ARGOS_URL/api/health"
+    ;;
+  capture)
+    text="${*:-}"
+    if [ -z "$text" ]; then
+      echo "usage: argos capture \"text\"" >&2
+      exit 1
+    fi
+    payload=$(TEXT="$text" python3 - <<'PY'
+import json, os
+print(json.dumps({
+  "kind": "manual_note",
+  "canon": "operator",
+  "source": "cli",
+  "payload": {"text": os.environ["TEXT"]},
+  "author": "operator"
+}))
+PY
+)
+    curl -sS "${auth_header[@]}" \
+      -H 'Content-Type: application/json' \
+      -d "$payload" \
+      "$ARGOS_URL/api/capture"
+    ;;
+  pack)
+    canon="operator"
+    task=""
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --canon) canon="$2"; shift 2 ;;
+        --task) task="$2"; shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    if [ -z "$task" ]; then
+      echo "usage: argos pack --canon operator --task \"task\"" >&2
+      exit 1
+    fi
+    payload=$(CANON="$canon" TASK="$task" python3 - <<'PY'
+import json, os
+print(json.dumps({
+  "canon": os.environ["CANON"],
+  "task": os.environ["TASK"],
+  "project": "argos",
+  "arm": "codex_cli"
+}))
+PY
+)
+    curl -sS "${auth_header[@]}" \
+      -H 'Content-Type: application/json' \
+      -d "$payload" \
+      "$ARGOS_URL/api/context-pack"
+    ;;
+  codex)
+    sub="${1:-}"
+    shift || true
+    case "$sub" in
+      start) exec "$(dirname "$0")/codex-start.sh" "$@" ;;
+      end) exec "$(dirname "$0")/codex-end.sh" "$@" ;;
+      *) echo "usage: argos codex start|end" >&2; exit 1 ;;
+    esac
+    ;;
+  rollback)
+    proposal_id="${1:-}"
+    reason="${2:-operator rollback}"
+    if [ -z "$proposal_id" ]; then
+      echo "usage: argos rollback <proposal_id> [reason]" >&2
+      exit 1
+    fi
+    payload=$(REASON="$reason" python3 - <<'PY'
+import json, os
+print(json.dumps({"operator": "operator", "reason": os.environ["REASON"]}))
+PY
+)
+    curl -sS "${auth_header[@]}" \
+      -H 'Content-Type: application/json' \
+      -d "$payload" \
+      "$ARGOS_URL/api/autonomous-mutations/$proposal_id/rollback"
+    ;;
+  *)
+    cat >&2 <<USAGE
+usage:
+  argos health
+  argos capture "text"
+  argos pack --canon operator --task "task"
+  argos codex start --project name --canon operator --task "task"
+  argos codex end
+  argos rollback <proposal_id> [reason]
+USAGE
+    exit 1
+    ;;
+esac

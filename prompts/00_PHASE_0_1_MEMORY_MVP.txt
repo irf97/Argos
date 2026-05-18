@@ -1,0 +1,37 @@
+Read AGENTS.md and docs/ARGOS_BUILD_ARCHITECTURE.md.
+
+Implement only Phase 0 and Phase 1.
+
+Build:
+1. Phoenix LiveView app foundation if missing.
+2. Postgres/Ecto with binary IDs.
+3. /api/health endpoint.
+4. events migration.
+5. Argos.Memory.Event schema.
+6. Argos.Kernel.Hashing module.
+7. Argos.Memory.Events.append_event/1.
+8. per-canon hash-chain validation.
+9. POST /api/capture.
+10. tests for hashing, append_event, capture endpoint, malformed payloads.
+
+Constraints:
+- One Phoenix app.
+- One Postgres database.
+- Binary IDs everywhere.
+- Events are append-only.
+- Event hashes are deterministic.
+- Events are hash-linked per canon.
+- No canons yet.
+- No approvals yet.
+- No context packs yet.
+- No adaptive loop.
+- No intelligence loop.
+- No R&D loop.
+- No Pip.
+- No trading.
+- No multi-operator.
+
+Before finishing:
+- run mix format
+- run mix test
+- summarize changed files

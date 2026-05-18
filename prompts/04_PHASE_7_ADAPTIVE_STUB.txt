@@ -1,0 +1,25 @@
+Read AGENTS.md and docs/ARGOS_BUILD_ARCHITECTURE.md.
+
+Implement only Phase 7.
+
+Build adaptive scoring stub. No autonomous policy updates.
+
+Tasks:
+1. Add outcome scoring module.
+2. Add score fields or score records as needed.
+3. Score outcomes by canon using explicit rules.
+4. Attach score to outcome/context_pack/policy metadata.
+5. Add dashboard stats.
+6. Add tests.
+
+Constraints:
+- No automatic policy updates.
+- No self-modifying behavior.
+- No intelligence loop.
+- No R&D loop.
+- Scoring is explainable and inspectable.
+
+Before finishing:
+- run mix format
+- run mix test
+- summarize changed files

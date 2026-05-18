@@ -1,0 +1,113 @@
+<Layouts.flash_group flash={@flash} />
+<main class="min-h-screen bg-base-100 px-6 py-8 text-base-content">
+  <section class="mx-auto flex max-w-5xl flex-col gap-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-base-content/60">ARGOS</p>
+        <h1 class="mt-2 text-3xl font-semibold">Operator memory substrate</h1>
+      </div>
+      <Layouts.theme_toggle />
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-3">
+      <div class="rounded-lg border border-base-300 p-4">
+        <p class="text-sm text-base-content/60">System</p>
+        <p class="mt-2 text-xl font-semibold">local-first</p>
+      </div>
+      <div class="rounded-lg border border-base-300 p-4">
+        <p class="text-sm text-base-content/60">Memory</p>
+        <p class="mt-2 text-xl font-semibold">{@event_count} events</p>
+      </div>
+      <div class="rounded-lg border border-base-300 p-4">
+        <p class="text-sm text-base-content/60">Authority</p>
+        <p class="mt-2 text-xl font-semibold">{@pending_approval_count} pending approvals</p>
+      </div>
+    </div>
+
+    <section class="rounded-lg border border-base-300 p-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Outcome scoring</h2>
+        <span class="text-sm text-base-content/60">
+          {@outcome_stats.scored_outcomes_count} scored outcomes
+        </span>
+      </div>
+      <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="text-sm font-medium text-base-content/70">Average score by canon</p>
+          <ul class="mt-2 space-y-1 text-sm">
+            <li
+              :if={map_size(@outcome_stats.average_score_by_canon) == 0}
+              class="text-base-content/60"
+            >
+              No scored outcomes yet.
+            </li>
+            <li :for={{canon, average} <- @outcome_stats.average_score_by_canon}>
+              <span class="font-medium">{canon}</span>: {average}
+            </li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-base-content/70">Latest low scores</p>
+          <ul class="mt-2 space-y-1 text-sm">
+            <li :if={Enum.empty?(@outcome_stats.latest_low_scores)} class="text-base-content/60">
+              No low scores.
+            </li>
+            <li :for={score <- @outcome_stats.latest_low_scores}>
+              {score.canon}: {score.score} ({score.grade})
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-lg border border-base-300 p-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Proposals</h2>
+        <span class="text-sm text-base-content/60">
+          {@proposal_stats.pending_proposal_count} pending proposals
+        </span>
+      </div>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li :if={Enum.empty?(@proposal_stats.pending_proposals)} class="text-base-content/60">
+          No pending proposals.
+        </li>
+        <li
+          :for={proposal <- @proposal_stats.pending_proposals}
+          class="flex items-center justify-between border-t border-base-300 pt-2"
+        >
+          <span>
+            <span class="font-medium">{proposal.title}</span>
+            <span class="text-base-content/60">({proposal.type}, {proposal.canon})</span>
+          </span>
+          <span class="text-base-content/60">{proposal.risk_level}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="rounded-lg border border-base-300 p-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Autonomous mutations</h2>
+        <span class="text-sm text-base-content/60">24h rollback window</span>
+      </div>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li :if={Enum.empty?(@recent_autonomous_mutations)} class="text-base-content/60">
+          No autonomous mutations.
+        </li>
+        <li
+          :for={mutation <- @recent_autonomous_mutations}
+          class="flex items-center justify-between border-t border-base-300 pt-2"
+        >
+          <span>
+            <span class="font-medium">{mutation.canon}</span>
+            <span class="text-base-content/60">
+              v{mutation.prior_canon_version} -> v{mutation.new_canon_version}
+            </span>
+          </span>
+          <span class="text-base-content/60">
+            rollback until {Calendar.strftime(mutation.rollback_expires_at, "%Y-%m-%d %H:%M")}
+          </span>
+        </li>
+      </ul>
+    </section>
+  </section>
+</main>

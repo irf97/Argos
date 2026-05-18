@@ -1,0 +1,26 @@
+Read AGENTS.md and docs/ARGOS_BUILD_ARCHITECTURE.md.
+
+Implement only Phase 8.
+
+Build intelligence proposals, not autonomous actions.
+
+Tasks:
+1. Add proposal_queue migration/schema.
+2. Add contradiction detector v0.
+3. Add gap detector v0.
+4. Add proposal creation flow.
+5. Route proposals through approvals.
+6. Add dashboard panel for proposals.
+7. Add tests.
+
+Constraints:
+- Proposals only.
+- No autonomous canon edits.
+- No autonomous execution.
+- No R&D loop yet.
+- Operator approval required for any canon-changing result.
+
+Before finishing:
+- run mix format
+- run mix test
+- summarize changed files

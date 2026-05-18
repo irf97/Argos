@@ -1,0 +1,33 @@
+Read AGENTS.md and docs/ARGOS_BUILD_ARCHITECTURE.md.
+
+Implement only Phase 2 and Phase 3.
+
+Build immutable canons and approval-gated commits.
+
+Tasks:
+1. Add canons migration/schema.
+2. Add approvals migration/schema.
+3. Add Argos.Memory.Canons.
+4. Add Argos.Approvals.
+5. Create canon draft flow.
+6. Create approval approve/reject flow.
+7. On approval, commit new canon version and emit canon_commit event.
+8. Add GET /api/canon/:name.
+9. Add GET /api/approvals.
+10. Add POST /api/approvals/:id/approve.
+11. Add POST /api/approvals/:id/reject.
+12. Add LiveView approval queue.
+13. Add tests.
+
+Constraints:
+- Canon versions never mutate.
+- Canon commits require approval.
+- Operator approval is the only commit authority.
+- Use existing events hash-chain.
+- Do not implement context packs yet.
+- Do not implement adaptive/intelligence/R&D loops.
+
+Before finishing:
+- run mix format
+- run mix test
+- summarize changed files

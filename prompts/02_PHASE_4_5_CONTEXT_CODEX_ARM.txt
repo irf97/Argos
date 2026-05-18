@@ -1,0 +1,35 @@
+Read AGENTS.md and docs/ARGOS_BUILD_ARCHITECTURE.md.
+
+Implement only Phase 4 and Phase 5.
+
+Build context packs and Codex CLI arm integration.
+
+Tasks:
+1. Add context_packs migration/schema.
+2. Add arms and arm_sessions migrations/schemas.
+3. Add outcomes migration/schema.
+4. Add Argos.Context.Packs compiler.
+5. Add Markdown and JSON renderers.
+6. Add POST /api/context-pack.
+7. Add GET /api/context-pack/:hash.
+8. Add POST /api/arms/session/start.
+9. Add POST /api/arms/session/end.
+10. Add POST /api/outcomes.
+11. Add scripts/argos shell CLI.
+12. Add scripts/codex-start.sh.
+13. Add scripts/codex-end.sh.
+14. Write .argos/context-pack.md and .argos/session.json on start.
+15. Capture git diff/test summary on session end.
+16. Add tests.
+
+Constraints:
+- Context packs must be reproducible.
+- Context packs must include provenance.
+- Codex is an external execution arm.
+- ARGOS does not execute autonomously.
+- No adaptive/intelligence/R&D loops yet.
+
+Before finishing:
+- run mix format
+- run mix test
+- summarize changed files

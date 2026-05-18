@@ -1,0 +1,24 @@
+Read AGENTS.md and docs/ARGOS_BUILD_ARCHITECTURE.md.
+
+Implement only Phase 6.
+
+Build retrieval for context packs.
+
+Tasks:
+1. Add doctrine_chunks migration/schema.
+2. Add Postgres full-text retrieval first.
+3. Add Argos.Context.Retrieval.
+4. Update context pack compiler to include retrieved doctrine chunks.
+5. Add retrieval_policy metadata to every context pack.
+6. Add tests for search relevance, canon filtering, and provenance.
+
+Constraints:
+- Start with Postgres full-text.
+- Do not add embeddings unless full-text is passing and doctrine data exists.
+- Do not implement adaptive policy changes yet.
+- Do not implement intelligence/R&D loops.
+
+Before finishing:
+- run mix format
+- run mix test
+- summarize changed files
