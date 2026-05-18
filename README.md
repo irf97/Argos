@@ -34,6 +34,7 @@ mix phx.server
 Start here:
 
 - [ARGOS Tutorial](docs/TUTORIAL.md)
+- [Operational Spec HTML](docs/ARGOS_SPEC.html)
 - [Desktop Hub](docs/DESKTOP_HUB.md)
 - [Claude MCP](docs/CLAUDE_MCP.md)
 - [OpenAI MCP](docs/OPENAI_MCP.md)

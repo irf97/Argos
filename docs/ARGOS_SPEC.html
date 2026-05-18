@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARGOS Operational Specification</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #162022;
+      --muted: #59686b;
+      --line: #d7dee0;
+      --paper: #f7f7f4;
+      --panel: #ffffff;
+      --panel-2: #eef3f2;
+      --accent: #0b6b73;
+      --accent-2: #8a4f18;
+      --danger: #b3261e;
+      --warn: #8a5b00;
+      --ok: #1f7a3f;
+      --code: #11181a;
+      --code-bg: #e9eeee;
+      --shadow: 0 12px 30px rgba(19, 36, 39, 0.09);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 650;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 247, 244, 0.94);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 180px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .mark {
+      width: 30px;
+      height: 30px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--panel);
+      background: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 16px;
+      font-size: 14px;
+    }
+
+    .hero {
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(11, 107, 115, 0.11), rgba(138, 79, 24, 0.08)),
+        var(--paper);
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 64px 22px 48px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 34px;
+      align-items: end;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(38px, 6vw, 74px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 20px;
+    }
+
+    .summary-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .summary-panel h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .status-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .status-line {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .status-line strong {
+      color: var(--ink);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 22px 72px;
+      display: grid;
+      gap: 28px;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 26px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 0;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    code {
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      color: var(--code);
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+    }
+
+    pre {
+      margin: 14px 0 0;
+      padding: 16px;
+      overflow-x: auto;
+      color: #ecf5f3;
+      background: #11181a;
+      border-radius: var(--radius);
+      border: 1px solid #253134;
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    pre code {
+      color: inherit;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--ink);
+      background: var(--panel-2);
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .tile {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      padding: 18px;
+    }
+
+    .tile h3 {
+      margin-top: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .severity {
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .sev-high {
+      color: var(--danger);
+    }
+
+    .sev-med {
+      color: var(--warn);
+    }
+
+    .sev-low {
+      color: var(--ok);
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+      background: #eef6f5;
+      padding: 14px 16px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .warning {
+      border-left: 4px solid var(--danger);
+      background: #fff1ef;
+      padding: 14px 16px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .flow {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: 180px 34px 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .flow-box {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      font-weight: 750;
+    }
+
+    .arrow {
+      text-align: center;
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 22px 40px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 880px) {
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      .hero-inner,
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-row {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        display: none;
+      }
+    }
+
+    @media print {
+      .topbar {
+        position: static;
+      }
+
+      body {
+        background: #ffffff;
+      }
+
+      section,
+      .summary-panel {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      a {
+        color: #000000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="mark">A</div>
+        <span>ARGOS Spec</span>
+      </div>
+      <nav aria-label="Specification sections">
+        <a href="#intent">Intent</a>
+        <a href="#topology">Topology</a>
+        <a href="#contracts">Contracts</a>
+        <a href="#invariants">Invariants</a>
+        <a href="#failure-modes">Failure Modes</a>
+        <a href="#runbooks">Runbooks</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>ARGOS Operational Specification</h1>
+        <p class="subtitle">
+          A local-first memory substrate for AI agents: one desktop daemon, one Postgres source of truth,
+          many MCP and HTTP clients.
+        </p>
+      </div>
+      <aside class="summary-panel" aria-label="Spec summary">
+        <h2>Spec Snapshot</h2>
+        <div class="status-grid">
+          <div class="status-line">
+            <strong>Runtime</strong>
+            <span>Phoenix server on <code>127.0.0.1:4020</code></span>
+          </div>
+          <div class="status-line">
+            <strong>Storage</strong>
+            <span>Local Postgres database <code>argos_dev</code></span>
+          </div>
+          <div class="status-line">
+            <strong>MCP</strong>
+            <span><code>POST /mcp</code> plus Claude stdio bridge</span>
+          </div>
+          <div class="status-line">
+            <strong>Boundary</strong>
+            <span>Capture fast; slow work happens after capture</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <main>
+    <section id="intent">
+      <h2>1. Intent</h2>
+      <p>
+        ARGOS is not a model's internal memory. ARGOS is an external, auditable memory backend that
+        agents can call through MCP or HTTP. The model remains an execution client. ARGOS owns storage,
+        validation, retrieval, and approval-gated durable state changes.
+      </p>
+      <div class="grid-3">
+        <div class="tile">
+          <span class="tag">Goal</span>
+          <h3>Shared local memory</h3>
+          <p>Claude, GPT clients, Codex, local agents, and browser tools use the same desktop data source.</p>
+        </div>
+        <div class="tile">
+          <span class="tag">Rule</span>
+          <h3>One process</h3>
+          <p>Run one ARGOS Phoenix daemon. Do not spawn a separate memory server per agent.</p>
+        </div>
+        <div class="tile">
+          <span class="tag">Boundary</span>
+          <h3>No hidden autonomy</h3>
+          <p>Canon changes, risky proposals, and durable doctrine mutations require operator approval.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="topology">
+      <h2>2. Runtime Topology</h2>
+      <p>
+        ARGOS is a desktop hub. Every client routes through the Phoenix server, and Phoenix is the only
+        process that writes memory data to Postgres.
+      </p>
+      <div class="flow" aria-label="ARGOS runtime topology">
+        <div class="flow-row">
+          <div class="flow-box">Claude Desktop</div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-box">stdio bridge -> HTTP MCP -> Phoenix -> Postgres</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">OpenAI/GPT client</div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-box">HTTP MCP -> Phoenix -> Postgres</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">Local backend</div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-box">HTTP API -> Phoenix -> Postgres</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">Browser/operator</div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-box">LiveView/API -> Phoenix -> Postgres</div>
+        </div>
+      </div>
+      <pre><code>ARGOS_URL=http://127.0.0.1:4020
+ARGOS_MCP_URL=http://127.0.0.1:4020/mcp
+ARGOS_HOME=&lt;repo path&gt;</code></pre>
+      <div class="note">
+        Use <code>127.0.0.1</code> instead of <code>localhost</code> so all clients resolve the same loopback target.
+      </div>
+    </section>
+
+    <section id="contracts">
+      <h2>3. Public Contracts</h2>
+      <div class="grid-2">
+        <div>
+          <h3>HTTP API</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Endpoint</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>GET /api/health</code></td>
+                <td>Readiness check for process and HTTP routing.</td>
+              </tr>
+              <tr>
+                <td><code>GET /api/schema</code></td>
+                <td>Machine-readable route and capability summary.</td>
+              </tr>
+              <tr>
+                <td><code>POST /api/capture</code></td>
+                <td>Append a validated event to memory.</td>
+              </tr>
+              <tr>
+                <td><code>GET /api/events</code></td>
+                <td>List recent event memory.</td>
+              </tr>
+              <tr>
+                <td><code>POST /api/context-pack</code></td>
+                <td>Create a task-specific memory bundle.</td>
+              </tr>
+              <tr>
+                <td><code>GET /api/approvals</code></td>
+                <td>Inspect operator approval queue.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>MCP Tools</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Tool</th>
+                <th>Intent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>search</code>, <code>fetch</code></td>
+                <td>Read-only OpenAI/GPT compatible retrieval.</td>
+              </tr>
+              <tr>
+                <td><code>argos_search</code></td>
+                <td>ARGOS-native search over memory surfaces.</td>
+              </tr>
+              <tr>
+                <td><code>argos_capture</code></td>
+                <td>Write a low-stakes event.</td>
+              </tr>
+              <tr>
+                <td><code>argos_pack</code></td>
+                <td>Compile a context pack for a task.</td>
+              </tr>
+              <tr>
+                <td><code>argos_propose</code></td>
+                <td>Create a proposal for operator review.</td>
+              </tr>
+              <tr>
+                <td><code>argos_state</code></td>
+                <td>Read current state snapshot and recent events.</td>
+              </tr>
+              <tr>
+                <td><code>argos_crawl</code>, <code>argos_crawl_and_ingest</code></td>
+                <td>Create and ingest local crawl outputs.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="memory-flow">
+      <h2>4. Memory Write Flow</h2>
+      <p>
+        Capture is the most important path. It must be fast, transactional, and local. It should not wait
+        on external agents, embedders, crawlers, web requests, or long-running workers.
+      </p>
+      <ol>
+        <li>Client calls <code>argos_capture</code> or <code>POST /api/capture</code>.</li>
+        <li>ARGOS validates shape, kind, canon, source, payload, and author.</li>
+        <li>ARGOS opens a short Postgres transaction.</li>
+        <li>ARGOS locks the relevant canon chain.</li>
+        <li>ARGOS computes <code>prev_hash</code> and deterministic <code>hash</code>.</li>
+        <li>ARGOS inserts an append-only event.</li>
+        <li>ARGOS returns the event result quickly.</li>
+        <li>Optional slow follow-up work is queued after the event exists.</li>
+      </ol>
+      <div class="warning">
+        The write path must never hold a DB connection while waiting on downstream AI work. That failure
+        can starve the pool and make reads hang behind a stuck capture.
+      </div>
+    </section>
+
+    <section id="invariants">
+      <h2>5. Invariants</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Invariant</th>
+            <th>Reason</th>
+            <th>Violation Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>One Phoenix app</td>
+            <td>Keep supervision, routing, and data ownership simple.</td>
+            <td>Multiple competing memory servers or conflicting ports.</td>
+          </tr>
+          <tr>
+            <td>One Postgres database</td>
+            <td>Postgres is the source of truth.</td>
+            <td>Agents storing memory in separate files or direct side tables.</td>
+          </tr>
+          <tr>
+            <td>Events are append-only</td>
+            <td>Memory must be auditable.</td>
+            <td>Update/delete operations against historical events.</td>
+          </tr>
+          <tr>
+            <td>Event hashes are deterministic</td>
+            <td>Mutation should be detectable.</td>
+            <td>Same event material produces a different hash.</td>
+          </tr>
+          <tr>
+            <td>Events are hash-linked per canon</td>
+            <td>Chain validation proves ordering and continuity.</td>
+            <td>Wrong <code>prev_hash</code> or chain reconstruction failure.</td>
+          </tr>
+          <tr>
+            <td>Canon commits require approval</td>
+            <td>Durable doctrine changes need operator control.</td>
+            <td>Autonomous canon mutation without an approval record.</td>
+          </tr>
+          <tr>
+            <td>Agents do not write Postgres directly</td>
+            <td>ARGOS must enforce validation and hash-chain logic.</td>
+            <td>Client credentials or direct SQL writes outside Phoenix.</td>
+          </tr>
+          <tr>
+            <td>Loopback by default</td>
+            <td>Desktop memory should remain private unless explicitly exposed.</td>
+            <td>Binding to <code>0.0.0.0</code> without auth or private network controls.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="permission-model">
+      <h2>6. Client Permission Model</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Client Type</th>
+            <th>Allowed Surface</th>
+            <th>Default Trust</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Remote GPT or web connector</td>
+            <td><code>search</code>, <code>fetch</code></td>
+            <td>Read-only unless explicitly approved.</td>
+          </tr>
+          <tr>
+            <td>Claude Desktop</td>
+            <td>stdio bridge to local MCP tools</td>
+            <td>May write low-stakes events if operator asks.</td>
+          </tr>
+          <tr>
+            <td>Codex/local coding agent</td>
+            <td>HTTP MCP or HTTP API</td>
+            <td>Can capture implementation events and request context packs.</td>
+          </tr>
+          <tr>
+            <td>Planning or review agent</td>
+            <td><code>argos_propose</code>, read tools</td>
+            <td>Creates proposals, does not commit canon changes.</td>
+          </tr>
+          <tr>
+            <td>Browser/operator</td>
+            <td>LiveView approvals and HTTP API</td>
+            <td>Final authority for approvals and durable state changes.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="failure-modes">
+      <h2>7. Failure Modes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Failure</th>
+            <th>Severity</th>
+            <th>Symptom</th>
+            <th>Likely Cause</th>
+            <th>First Check</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ARGOS process down</td>
+            <td class="severity sev-high">High</td>
+            <td>Connection refused, no tools visible.</td>
+            <td>Daemon not started or crashed.</td>
+            <td><code>scripts\status-argos.ps1</code></td>
+          </tr>
+          <tr>
+            <td>Wrong URL or port</td>
+            <td class="severity sev-high">High</td>
+            <td>Client configured but calls fail.</td>
+            <td>Using <code>localhost</code>, old port, or wrong env var.</td>
+            <td><code>ARGOS_MCP_URL</code>, client config.</td>
+          </tr>
+          <tr>
+            <td>Claude bridge failure</td>
+            <td class="severity sev-med">Medium</td>
+            <td>Claude sees no ARGOS tools or tool calls time out.</td>
+            <td>Python bridge error, bad config, ARGOS not reachable.</td>
+            <td><code>.argos/argos-mcp-stdio.log</code></td>
+          </tr>
+          <tr>
+            <td>Postgres unavailable</td>
+            <td class="severity sev-high">High</td>
+            <td>Server starts poorly, writes fail, migrations fail.</td>
+            <td>DB service stopped, wrong user, missing database.</td>
+            <td><code>mix ecto.migrate</code></td>
+          </tr>
+          <tr>
+            <td>DB pool starvation</td>
+            <td class="severity sev-high">High</td>
+            <td>One write hangs; later reads hang too.</td>
+            <td>Connection held while waiting on slow downstream work.</td>
+            <td>Restart ARGOS, inspect write handler logs.</td>
+          </tr>
+          <tr>
+            <td>Capture timeout</td>
+            <td class="severity sev-high">High</td>
+            <td><code>argos_capture</code> hangs for minutes.</td>
+            <td>Capture path synchronously awaits worker, embedder, or crawler.</td>
+            <td>Ensure capture returns after DB insert.</td>
+          </tr>
+          <tr>
+            <td>Search empty after capture</td>
+            <td class="severity sev-med">Medium</td>
+            <td>Event exists but search returns no results.</td>
+            <td>Search query, index coverage, or MCP visible store mismatch.</td>
+            <td><code>GET /api/events</code>, then MCP <code>search</code>.</td>
+          </tr>
+          <tr>
+            <td>Hash-chain conflict</td>
+            <td class="severity sev-high">High</td>
+            <td>Wrong <code>prev_hash</code> or validation failure.</td>
+            <td>Concurrent writes not serialized per canon.</td>
+            <td>Chain validation tests and transaction locking.</td>
+          </tr>
+          <tr>
+            <td>Config overwrite</td>
+            <td class="severity sev-med">Medium</td>
+            <td>Existing MCP servers disappear.</td>
+            <td>Client config rewritten instead of merged.</td>
+            <td>Backup config, merge under <code>mcpServers</code>.</td>
+          </tr>
+          <tr>
+            <td>Remote connector cannot reach desktop</td>
+            <td class="severity sev-low">Low</td>
+            <td>ChatGPT web cannot connect to <code>127.0.0.1</code>.</td>
+            <td>Cloud client cannot see desktop loopback.</td>
+            <td>Use HTTPS tunnel with auth if remote access is needed.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="runbooks">
+      <h2>8. Runbooks</h2>
+      <div class="grid-2">
+        <div class="tile">
+          <h3>Health Check</h3>
+          <pre><code>scripts\status-argos.ps1
+
+Invoke-RestMethod http://127.0.0.1:4020/api/health</code></pre>
+        </div>
+        <div class="tile">
+          <h3>Restart Hub</h3>
+          <pre><code>scripts\stop-argos.ps1
+scripts\start-argos.ps1
+scripts\status-argos.ps1</code></pre>
+        </div>
+        <div class="tile">
+          <h3>Verify MCP</h3>
+          <pre><code>Invoke-RestMethod `
+  -Method Post `
+  -Uri http://127.0.0.1:4020/mcp `
+  -ContentType "application/json" `
+  -Body '{"jsonrpc":"2.0","id":"tools","method":"tools/list"}'</code></pre>
+        </div>
+        <div class="tile">
+          <h3>Verify Tests</h3>
+          <pre><code>mix test</code></pre>
+        </div>
+      </div>
+
+      <h3>Capture Round Trip</h3>
+      <pre><code>$body = @{
+  jsonrpc = "2.0"
+  id = "capture"
+  method = "tools/call"
+  params = @{
+    name = "argos_capture"
+    arguments = @{
+      kind = "manual_note"
+      canon_id = "operator"
+      content = "spec round trip"
+    }
+  }
+} | ConvertTo-Json -Depth 8
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://127.0.0.1:4020/mcp `
+  -ContentType "application/json" `
+  -Body $body</code></pre>
+    </section>
+
+    <section id="acceptance">
+      <h2>9. Acceptance Criteria</h2>
+      <ul>
+        <li><code>scripts\status-argos.ps1</code> reports <code>health_ok: true</code>.</li>
+        <li>MCP <code>tools/list</code> returns the ARGOS tools.</li>
+        <li><code>argos_capture</code> writes an event quickly.</li>
+        <li><code>search</code> and <code>fetch</code> can retrieve a captured event.</li>
+        <li><code>mix test</code> passes.</li>
+        <li>Claude config contains existing MCP servers plus <code>argos</code>.</li>
+        <li>Startup launcher exists for the desktop user.</li>
+        <li>No client writes directly to Postgres.</li>
+      </ul>
+    </section>
+
+    <section id="references">
+      <h2>10. Repo References</h2>
+      <ul>
+        <li><a href="./TUTORIAL.md">ARGOS Tutorial</a></li>
+        <li><a href="./DESKTOP_HUB.md">Desktop Hub</a></li>
+        <li><a href="./CLAUDE_MCP.md">Claude MCP</a></li>
+        <li><a href="./OPENAI_MCP.md">OpenAI MCP</a></li>
+        <li><a href="./ARGOS_BUILD_ARCHITECTURE.md">Build Architecture</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    ARGOS operational specification. Keep capture fast, memory append-only, and durable changes approval-gated.
+  </footer>
+</body>
+</html>
