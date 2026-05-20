@@ -57,6 +57,8 @@ test("approval queue renders the structured proposal dossier", async ({ page }) 
     await expect(card.getByRole("heading", { name: "Binding" })).toBeVisible();
     await expect(card.getByRole("heading", { name: "Provenance" })).toBeVisible();
     await expect(card.getByRole("heading", { name: "Initial failure modes" })).toBeVisible();
+    await expect(card.getByRole("heading", { name: "Where it lives after approval" })).toBeVisible();
+    await expect(card.getByText("Constellation sync is not wired yet")).toBeVisible();
     await expect(card.locator("p", { hasText: "permission-re-litigation" }).first()).toBeVisible();
     await expect(card.locator("p", { hasText: "scope-inflation" }).first()).toBeVisible();
     await expect(card.getByRole("button", { name: "Approve" })).toBeVisible();

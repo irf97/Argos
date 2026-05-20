@@ -30,7 +30,8 @@ defmodule ArgosWeb.ApprovalQueueLiveTest do
           "kind" => "canon_update",
           "body" => %{
             "name" => "ikuzo-greenlight",
-            "practice" => "patterns"
+            "practice" => "patterns",
+            "target" => "constellation"
           }
         },
         "risk_level" => "medium",
@@ -45,12 +46,17 @@ defmodule ArgosWeb.ApprovalQueueLiveTest do
     assert html =~ "Observation"
     assert html =~ "Binding"
     assert html =~ "Initial failure modes"
+    assert html =~ "Where it lives after approval"
+    assert html =~ "Constellation sync is not wired yet"
 
     view
     |> element("#approval-#{proposal.approval_id} button", "Approve")
     |> render_click()
 
-    refute render(view) =~ "ikuzo-greenlight"
+    html = render(view)
+    assert html =~ "Recent decisions"
+    assert html =~ "ikuzo-greenlight"
+    assert html =~ "Stored in ARGOS Postgres"
     assert Proposals.get_proposal!(proposal.id).status == "reviewed"
   end
 end

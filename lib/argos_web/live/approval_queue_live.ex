@@ -201,11 +201,71 @@ defmodule ArgosWeb.ApprovalQueueLive do
             </section>
           </div>
 
+          <section class="mt-4 rounded-lg border border-primary/30 bg-base-200/80 p-4">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-primary">
+              Where it lives after approval
+            </h3>
+            <div class="mt-3 grid gap-3 lg:grid-cols-2">
+              <div class="rounded-lg border border-base-300 bg-base-100/80 p-3">
+                <p class="text-sm font-semibold">ARGOS backend</p>
+                <p class="mt-1 text-sm leading-6 text-base-content/70">{item.storage_effect}</p>
+              </div>
+              <div class="rounded-lg border border-base-300 bg-base-100/80 p-3">
+                <p class="text-sm font-semibold">External target</p>
+                <p class="mt-1 text-sm leading-6 text-base-content/70">{item.external_effect}</p>
+              </div>
+            </div>
+          </section>
+
           <details class="mt-4 rounded-lg border border-base-300 bg-base-200 p-4">
             <summary class="cursor-pointer text-sm font-semibold">Raw proposed action JSON</summary>
             <pre class="mt-3 overflow-x-auto rounded bg-neutral p-4 text-xs text-neutral-content"><code>{item.proposed_action_json}</code></pre>
           </details>
         </article>
+
+        <section class="argos-panel rounded-lg p-5">
+          <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-wide text-primary">Backend</p>
+              <h2 class="mt-1 text-2xl font-semibold">Recent decisions</h2>
+            </div>
+            <p class="max-w-2xl text-sm text-base-content/70">
+              Approved proposal reviews are stored in ARGOS. External targets such as Constellation
+              need a sync adapter before their UI updates.
+            </p>
+          </div>
+
+          <div
+            :if={Enum.empty?(@recent_decisions)}
+            class="mt-5 rounded-lg border border-base-300 p-6 text-sm text-base-content/60"
+          >
+            No recent decisions.
+          </div>
+
+          <div class="mt-5 grid gap-3">
+            <article
+              :for={item <- @recent_decisions}
+              id={"decision-#{item.id}"}
+              class="rounded-lg border border-base-300 bg-base-200/70 p-4"
+            >
+              <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class={decision_badge_class(item.status)}>{item.status}</span>
+                    <span class="badge badge-outline">{item.action}</span>
+                    <span class="badge badge-outline">{item.target}</span>
+                  </div>
+                  <h3 class="mt-3 text-lg font-semibold">{item.entry_name}</h3>
+                  <p class="mt-1 text-sm text-base-content/70">{item.storage_effect}</p>
+                </div>
+                <div class="rounded-lg border border-base-300 bg-base-100/80 p-3 text-sm md:max-w-md">
+                  <p class="font-semibold">External sync</p>
+                  <p class="mt-1 text-base-content/70">{item.external_effect}</p>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
       </section>
     </main>
     """
@@ -216,7 +276,16 @@ defmodule ArgosWeb.ApprovalQueueLive do
       Approvals.list_approvals(status: "pending")
       |> Enum.map(&approval_view/1)
 
-    assign(socket, :approvals, approvals)
+    recent_decisions =
+      Approvals.list_approvals()
+      |> Enum.reject(&(&1.status == "pending"))
+      |> Enum.map(&approval_view/1)
+      |> Enum.reject(&test_artifact?/1)
+      |> Enum.take(8)
+
+    socket
+    |> assign(:approvals, approvals)
+    |> assign(:recent_decisions, recent_decisions)
   end
 
   defp approval_view(approval) do
@@ -247,6 +316,8 @@ defmodule ArgosWeb.ApprovalQueueLive do
       practice: Map.get(body, "practice") || "-",
       provenance: Map.get(body, "provenance") || "-",
       target: Map.get(body, "target") || "-",
+      storage_effect: storage_effect(approval),
+      external_effect: external_effect(Map.get(body, "target")),
       proposed_action_json: encode_pretty(proposed_action_from(approval, proposal))
     }
   end
@@ -297,8 +368,49 @@ defmodule ArgosWeb.ApprovalQueueLive do
 
   defp failure_modes_from(_body), do: []
 
+  defp storage_effect(%{action: "proposal_review", status: "pending"}) do
+    "On approve: ARGOS sets approval.status=approved, proposal.status=reviewed, and appends an approval_decided event."
+  end
+
+  defp storage_effect(%{action: "proposal_review", status: "approved"}) do
+    "Stored in ARGOS Postgres: approvals.status=approved, proposal_queue.status=reviewed, and an approval_decided event was appended."
+  end
+
+  defp storage_effect(%{action: "proposal_review", status: "rejected"}) do
+    "Stored in ARGOS Postgres: approvals.status=rejected, proposal_queue.status=dismissed, and an approval_decided event was appended."
+  end
+
+  defp storage_effect(%{action: "canon_commit", status: "approved"}) do
+    "Stored in ARGOS Postgres and committed as an immutable canon version."
+  end
+
+  defp storage_effect(%{action: "canon_commit", status: "pending"}) do
+    "On approve: ARGOS commits an immutable canon version and appends canon/approval events."
+  end
+
+  defp storage_effect(_approval), do: "Stored in ARGOS Postgres as an approval decision."
+
+  defp external_effect("constellation") do
+    "Constellation sync is not wired yet, so approving here does not call constellation_add or update the Constellation UI."
+  end
+
+  defp external_effect("-"), do: "No external target declared."
+  defp external_effect(nil), do: "No external target declared."
+
+  defp external_effect(target) do
+    "External target #{target} is declared, but no sync adapter is configured."
+  end
+
+  defp test_artifact?(%{entry_name: "playwright-greenlight-" <> _rest}), do: true
+  defp test_artifact?(%{entry_name: "screenshot-routing-" <> _rest}), do: true
+  defp test_artifact?(_item), do: false
+
   defp risk_badge_class("critical"), do: "badge badge-error"
   defp risk_badge_class("high"), do: "badge badge-error"
   defp risk_badge_class("medium"), do: "badge badge-warning"
   defp risk_badge_class(_risk), do: "badge badge-success"
+
+  defp decision_badge_class("approved"), do: "badge badge-success"
+  defp decision_badge_class("rejected"), do: "badge badge-error"
+  defp decision_badge_class(_status), do: "badge badge-outline"
 end
