@@ -20,11 +20,11 @@ defmodule ArgosWeb.ApprovalQueueLive do
 
   def render(assigns) do
     ~H"""
-    <main class="min-h-screen bg-base-100 px-6 py-8 text-base-content">
+    <main class="argos-shell min-h-screen px-6 py-8 text-base-content">
       <section class="mx-auto flex max-w-6xl flex-col gap-6">
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <p class="text-sm font-semibold uppercase tracking-wide text-base-content/60">ARGOS</p>
+            <p class="text-sm font-semibold uppercase tracking-wide text-primary">ARGOS</p>
             <h1 class="mt-2 text-3xl font-semibold">Approval queue</h1>
             <p class="mt-2 max-w-2xl text-sm text-base-content/70">
               Review MCP-submitted proposals and canon commits before they become durable state.
@@ -58,7 +58,7 @@ defmodule ArgosWeb.ApprovalQueueLive do
         <article
           :for={item <- @approvals}
           id={"approval-#{item.id}"}
-          class="rounded-lg border border-base-300 bg-base-100 p-5"
+          class="argos-panel rounded-lg p-5"
         >
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0">
@@ -90,6 +90,66 @@ defmodule ArgosWeb.ApprovalQueueLive do
               </button>
             </div>
           </div>
+
+          <div class="mt-5 h-1 w-full rounded-full argos-flame-rule"></div>
+
+          <section class="mt-5 rounded-lg border argos-ember-border bg-base-200/70 p-5">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-primary">
+                  {item.practice} / {item.target}
+                </p>
+                <h3 class="mt-2 text-2xl font-semibold">{item.entry_name}</h3>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="badge badge-primary">{item.proposal_action}</span>
+                <span class="badge badge-outline">{item.confidence}</span>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+              <div class="rounded-lg border border-base-300 bg-base-100/80 p-4">
+                <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                  Observation
+                </h4>
+                <p class="mt-3 text-sm leading-6">{item.observation}</p>
+              </div>
+
+              <div class="rounded-lg border border-primary/30 bg-primary/10 p-4">
+                <h4 class="text-sm font-semibold uppercase tracking-wide text-primary">
+                  Binding
+                </h4>
+                <p class="mt-3 text-sm leading-6">{item.binding}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-lg border border-base-300 bg-base-100/80 p-4">
+              <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                Provenance
+              </h4>
+              <p class="mt-3 text-sm leading-6 text-base-content/80">{item.provenance}</p>
+            </div>
+
+            <div class="mt-4">
+              <div class="flex items-center justify-between gap-4">
+                <h4 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                  Initial failure modes
+                </h4>
+                <span class="text-xs text-base-content/50">{length(item.failure_modes)} checks</span>
+              </div>
+              <div class="mt-3 grid gap-3 lg:grid-cols-2">
+                <div
+                  :for={failure <- item.failure_modes}
+                  class="rounded-lg border border-base-300 bg-base-100/80 p-4"
+                >
+                  <p class="text-sm font-semibold">{failure["name"] || failure[:name]}</p>
+                  <p class="mt-2 text-sm leading-6 text-base-content/70">
+                    {failure["trigger"] || failure[:trigger]}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
           <div class="mt-5 grid gap-4 lg:grid-cols-2">
             <section class="rounded-lg bg-base-200 p-4">
@@ -142,7 +202,7 @@ defmodule ArgosWeb.ApprovalQueueLive do
           </div>
 
           <details class="mt-4 rounded-lg border border-base-300 bg-base-200 p-4">
-            <summary class="cursor-pointer text-sm font-semibold">Proposed action JSON</summary>
+            <summary class="cursor-pointer text-sm font-semibold">Raw proposed action JSON</summary>
             <pre class="mt-3 overflow-x-auto rounded bg-neutral p-4 text-xs text-neutral-content"><code>{item.proposed_action_json}</code></pre>
           </details>
         </article>
@@ -179,6 +239,14 @@ defmodule ArgosWeb.ApprovalQueueLive do
       detector_version: proposal_value(proposal, :detector_version) || "-",
       dedupe_hash: proposal_value(proposal, :dedupe_hash) || "-",
       entry_name: Map.get(body, "name") || Map.get(body, "entry_name") || "-",
+      proposal_action: Map.get(body, "action") || "-",
+      binding: Map.get(body, "binding") || "-",
+      confidence: Map.get(body, "confidence") || "-",
+      failure_modes: failure_modes_from(body),
+      observation: Map.get(body, "observation") || "-",
+      practice: Map.get(body, "practice") || "-",
+      provenance: Map.get(body, "provenance") || "-",
+      target: Map.get(body, "target") || "-",
       proposed_action_json: encode_pretty(proposed_action_from(approval, proposal))
     }
   end
@@ -217,6 +285,17 @@ defmodule ArgosWeb.ApprovalQueueLive do
   defp encode_pretty(value) do
     Jason.encode!(value || %{}, pretty: true)
   end
+
+  defp failure_modes_from(%{"initialFailureModes" => failure_modes})
+       when is_list(failure_modes) do
+    failure_modes
+  end
+
+  defp failure_modes_from(%{:initialFailureModes => failure_modes}) when is_list(failure_modes) do
+    failure_modes
+  end
+
+  defp failure_modes_from(_body), do: []
 
   defp risk_badge_class("critical"), do: "badge badge-error"
   defp risk_badge_class("high"), do: "badge badge-error"

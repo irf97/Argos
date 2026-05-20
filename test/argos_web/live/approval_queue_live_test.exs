@@ -42,6 +42,9 @@ defmodule ArgosWeb.ApprovalQueueLiveTest do
     assert html =~ "ikuzo-greenlight"
     assert html =~ "mcp_v1"
     assert html =~ "MCP-submitted proposal."
+    assert html =~ "Observation"
+    assert html =~ "Binding"
+    assert html =~ "Initial failure modes"
 
     view
     |> element("#approval-#{proposal.approval_id} button", "Approve")

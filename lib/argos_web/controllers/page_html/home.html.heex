@@ -1,31 +1,31 @@
 <Layouts.flash_group flash={@flash} />
-<main class="min-h-screen bg-base-100 px-6 py-8 text-base-content">
+<main class="argos-shell min-h-screen px-6 py-8 text-base-content">
   <section class="mx-auto flex max-w-5xl flex-col gap-8">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm font-semibold uppercase tracking-wide text-base-content/60">ARGOS</p>
+        <p class="text-sm font-semibold uppercase tracking-wide text-primary">ARGOS</p>
         <h1 class="mt-2 text-3xl font-semibold">Operator memory substrate</h1>
       </div>
       <Layouts.theme_toggle />
     </div>
 
     <div class="grid gap-4 md:grid-cols-3">
-      <div class="rounded-lg border border-base-300 p-4">
+      <div class="argos-panel rounded-lg p-4">
         <p class="text-sm text-base-content/60">System</p>
         <p class="mt-2 text-xl font-semibold">local-first</p>
       </div>
-      <div class="rounded-lg border border-base-300 p-4">
+      <div class="argos-panel rounded-lg p-4">
         <p class="text-sm text-base-content/60">Memory</p>
         <p class="mt-2 text-xl font-semibold">{@event_count} events</p>
       </div>
-      <div class="rounded-lg border border-base-300 p-4">
+      <div class="argos-panel rounded-lg p-4">
         <p class="text-sm text-base-content/60">Authority</p>
         <p class="mt-2 text-xl font-semibold">{@pending_approval_count} pending approvals</p>
         <a href={~p"/approvals"} class="btn btn-sm btn-outline mt-4">Review queue</a>
       </div>
     </div>
 
-    <section class="rounded-lg border border-base-300 p-4">
+    <section class="argos-panel rounded-lg p-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Outcome scoring</h2>
         <span class="text-sm text-base-content/60">
@@ -61,7 +61,7 @@
       </div>
     </section>
 
-    <section class="rounded-lg border border-base-300 p-4">
+    <section class="argos-panel rounded-lg p-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Proposals</h2>
         <span class="text-sm text-base-content/60">
@@ -85,7 +85,7 @@
       </ul>
     </section>
 
-    <section class="rounded-lg border border-base-300 p-4">
+    <section class="argos-panel rounded-lg p-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Autonomous mutations</h2>
         <span class="text-sm text-base-content/60">24h rollback window</span>
