@@ -7,6 +7,7 @@ defmodule Argos.Approvals do
   import Ecto.Query
 
   alias Argos.Approvals.Approval
+  alias Argos.Intelligence.Proposal
   alias Argos.Memory.Canons
   alias Argos.Memory.Events
   alias Argos.Repo
@@ -99,13 +100,9 @@ defmodule Argos.Approvals do
             author: decided_by
           })
 
-          if status == "approved" and approval.action == "canon_commit" do
-            case Canons.commit_approved_canon(approval) do
-              {:ok, canon} -> {approval, canon}
-              {:error, reason} -> Repo.rollback(reason)
-            end
-          else
-            {approval, nil}
+          case apply_decision_effect(approval, status) do
+            {:ok, result} -> {approval, result}
+            {:error, reason} -> Repo.rollback(reason)
           end
       end
     end)
@@ -121,4 +118,35 @@ defmodule Argos.Approvals do
   defp maybe_filter_status(query, status) do
     where(query, [approval], approval.status == ^status)
   end
+
+  defp apply_decision_effect(%Approval{action: "canon_commit"} = approval, "approved") do
+    case Canons.commit_approved_canon(approval) do
+      {:ok, canon} -> {:ok, canon}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp apply_decision_effect(%Approval{action: "proposal_review"} = approval, status) do
+    proposal_status = if status == "approved", do: "reviewed", else: "dismissed"
+
+    Proposal
+    |> where([proposal], proposal.id == ^approval.subject_id)
+    |> lock("FOR UPDATE")
+    |> Repo.one()
+    |> case do
+      nil ->
+        {:ok, nil}
+
+      proposal ->
+        proposal
+        |> Proposal.changeset(%{status: proposal_status})
+        |> Repo.update()
+        |> case do
+          {:ok, _proposal} -> {:ok, nil}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
+  end
+
+  defp apply_decision_effect(_approval, _status), do: {:ok, nil}
 end
